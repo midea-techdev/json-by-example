@@ -46,7 +46,7 @@ class Signal():
     def __init__(self, _place:str, _stamp:datetime, _samples:list[complex]):
         self._place = _place
         self. _stamp = _stamp
-        self._sample= _samples
+        self._samples= _samples
 
     @property
     def place(self):
@@ -54,7 +54,7 @@ class Signal():
 
     @property
     def stamp(self):
-        return self.stamp
+        return self._stamp
 
     @property
     def samples(self):
@@ -89,7 +89,7 @@ data =  """{
                 "imag": 1.0
             },
             {
-                "__class": "complex",
+                "__class__": "complex",
                 "real": 2.0,
                 "imag": 5.0
             }
@@ -131,9 +131,9 @@ class SignalDecoder(json.JSONDecoder):
         return d # defaulting if not complex                
                    
 if __name__ == '__main__':
-    x = json.loads(data, cls= SignalDecoder)
+    x = json.loads(data, cls= SignalDecoder) # decoding the JSON string into Python object and returning a dictionary
     print(x) 
-    y = json.dumps(x, cls=ComplexEncoder, indent=4)
+    y = json.dumps(x, cls=ComplexEncoder, indent=4) # encoding the Python object into JSON string and returning a string
     print(type(y))
     print(y) 
                   

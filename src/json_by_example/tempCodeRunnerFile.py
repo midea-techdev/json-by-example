@@ -1,6 +1,5 @@
-if __name__ == '__main__':
-     x=json.loads(data, object_hook=custom_decoder)
-     pint(x) 
-     y= json.dumps(x, cls=CustomEncoder, indent=4)
-     pint(type(y))
-     
+elif isinstance(obj, timezone):
+            offset_hours = obj.utcoffset(None).total_seconds() / 3600
+            return {
+                "__class__": "timezone",
+                "offset": int(offset_hours)

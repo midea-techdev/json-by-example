@@ -25,14 +25,14 @@ class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, date):
             return {
-                "__class__": "date",
+                "__class": "date",
                 "y": obj.year,
                 "month": obj.month,
                 "d": obj.day
             }
         elif isinstance(obj, timedelta):
             return {
-                "__class__": "timedelta",
+                "__class": "timedelta",
                 "days": obj.days,
                 "seconds": obj.seconds,
                 "microseconds": obj.microseconds
@@ -40,13 +40,13 @@ class CustomEncoder(json.JSONEncoder):
         elif isinstance(obj, timezone):
             offset_hours = obj.utcoffset(None).total_seconds() / 3600
             return {
-                "__class__": "timezone",
+                "__class": "timezone",
                 "offset": int(offset_hours)
             }
         return super().default(obj)
 def custom_decoder(dct):
-    if "__class__" in dct:
-        cls_name = dct["__class__"]
+    if "__class" in dct:
+        cls_name = dct["__class"]
         if cls_name == "date":
             return date(dct["y"], dct["month"], dct["d"])
         elif cls_name == "timedelta":
@@ -55,9 +55,10 @@ def custom_decoder(dct):
             return timezone(timedelta(hours=dct["offset"]))
     return dct
 if __name__ == '__main__':
-    x =json.loads(data, object_hook=custom_decoder)
+    x =json.loads(data, object_hook=custom_decoder) # decoding the JSON string into Python object and returning a dictionary
     print(x) 
-    y = json.dumps(x, cls=CustomEncoder, indent=4)
-    print(type(y))
-    print(y) 
+    print(type(x)) # <class 'dict'>
+    y = json.dumps(x, cls=CustomEncoder, indent=4) # encoding the Python object into JSON string and returning a string
    
+    print(y) 
+    print(type(y))

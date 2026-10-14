@@ -27,47 +27,25 @@ data = """{
         "fragment": ""
     }
 }"""
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, EmailMessage):
-            return {
-                "__class__": "EmailMessage",
-                "headers": obj.headers,
-                "body": obj.body
-            }
-        elif isinstance(obj, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
-            return {
-                "__class__": "IPv4Address", 
-                "address": str(obj)
-            }
-        elif isinstance(obj, ParseResult):
-            return {
-                "__class__": "ParseResult",
-                "scheme": obj.scheme,
-                "netloc": obj.netloc,
-                "path": obj.path,
-                "params": obj.params,
-                "query": obj.query,
-                "fragment": obj.fragment
-            }
-        return super().default(obj)
 
 class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, EmailMessage):
+            headers = {k: v for k, v in obj.items()}
             return {
-                "__class__": "EmailMessage",
-                "headers": obj.headers,
-                "body": obj.body
+                "__class": "EmailMessage",
+                "headers": headers,
+                "body": obj.get_content().strip() if obj.get_content() else ""
             }
-        elif isinstance(obj, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
+        elif isinstance(obj, IPv4Address):
             return {
-                "__class__": "IPv4Address",  # أو "IPv6Address" حسب نوع الكائن
+                "__class": "IPv4Address",  
                 "address": str(obj)
             }
+        
         elif isinstance(obj, ParseResult):
             return {
-                "__class__": "ParseResult",
+                "__class": "ParseResult",
                 "scheme": obj.scheme,
                 "netloc": obj.netloc,
                 "path": obj.path,
@@ -77,14 +55,17 @@ class CustomEncoder(json.JSONEncoder):
             }
         return super().default(obj)
 def custom_decoder(dct):
-    if "__class__" in dct:
-        cls_name = dct["__class__"]
+    if "__class" in dct:
+        cls_name = dct["__class"]
         
         if cls_name == "EmailMessage":
-            return EmailMessage(headers=dct["headers"], body=dct["body"])
-            
+            msg = EmailMessage()
+            for key, value in dct["headers"].items():
+                msg[key] = value
+            msg.set_content(dct["body"])
+            return msg
         elif cls_name == "IPv4Address":
-            return ipaddress.IPv4Address(dct["address"])
+            return IPv4Address(dct["address"])
             
         elif cls_name == "ParseResult":
             return ParseResult(
@@ -96,9 +77,9 @@ def custom_decoder(dct):
                 fragment=dct["fragment"]
             )
     return dct
-    if __name__ == '__main__':
-     x= json.loads(data, object_hook=custom_decoder)
-     print(x)
-     y= json.dumps(x, cls=CustomEncoder, indent=4)
-     print(type(y))
-     print(y)
+if __name__ == '__main__':
+  x= json.loads(data, object_hook=custom_decoder)
+  print(x)
+  y= json.dumps(x, cls=CustomEncoder, indent=4)
+  print(type(y))
+  print(y)
